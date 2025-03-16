@@ -11,7 +11,11 @@ let enableinvert = true;
 const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
 const audio = new Audio(audioUrl);
 audio.preload = "auto";
+audio.volume = 0.7;
+audio.loop = true;
+audio.currentTime = 0;
 audio.load();
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
     
@@ -267,17 +271,9 @@ function applyStyles2() {
   
   document.body.appendChild(turtleDiv);
   const turtleStyleEl = document.createElement('style');
-  // const intervalId = setInterval(() => {
-  //   audio.currentTime = 0; // Reset playback to the start
-  //   audio.play();
-  //   }, 1000);
-  for (let i = 0; i < 500; i++){
-    Id = setInterval(() => {
-      // audio.currentTime = 0; // Reset playback to the start
-      audio.play()
-    }
-  )
-  }
+
+  audio.play()
+
 
   turtleStyleEl.textContent = `
     @keyframes moveLeftToRight {
@@ -297,6 +293,8 @@ function applyStyles2() {
 
 function unapplyStyles(){
   const styles = document.querySelectorAll('style');
+  audio.pause();
+  audio.currentTime = 0;
   styles.forEach(style => {
     if (style.textContent.includes('Bangers') || 
         style.textContent.includes('moveLeftToRight') ||
