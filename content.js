@@ -11,7 +11,7 @@ let enableinvert = true;
 const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
 const audio = new Audio(audioUrl);
 audio.preload = "auto";
-
+audio.load();
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
     
@@ -194,7 +194,7 @@ function addComicEffect(x, y) {
   
   setTimeout(() => {
     comicEffect.parentNode.removeChild(comicEffect);
-  }, 1000);
+  }, 980);
 }
 
 function addSpeechBubbles() {
@@ -266,9 +266,19 @@ function applyStyles2() {
   turtleDiv.appendChild(turtleImg);
   
   document.body.appendChild(turtleDiv);
-  
   const turtleStyleEl = document.createElement('style');
-  
+  // const intervalId = setInterval(() => {
+  //   audio.currentTime = 0; // Reset playback to the start
+  //   audio.play();
+  //   }, 1000);
+  for (let i = 0; i < 500; i++){
+    Id = setInterval(() => {
+      // audio.currentTime = 0; // Reset playback to the start
+      audio.play()
+    }
+  )
+  }
+
   turtleStyleEl.textContent = `
     @keyframes moveLeftToRight {
       from { right: -100px; }
@@ -499,8 +509,10 @@ function addPongGame() {
     // // const resonance = new Audio(audioUrl2)
     // audio.play();
     // resonance.play();
-    audio.currentTime = 0; // Reset playback to the start
-    audio.play();
+    
+    
+    // audio.currentTime = 0; // Reset playback to the start
+    // audio.play();
     b.top = b.y - b.radius;
     b.bottom = b.y + b.radius;
     b.left = b.x - b.radius;

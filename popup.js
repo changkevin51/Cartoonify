@@ -84,10 +84,10 @@ updateColorPreview(mainColorInput.value);
 applyStylesButton.addEventListener('click', () => {
     i++;
     if (i%2==1){
-        applyStylesButton.innerHTML = "Unapply"
+        applyStylesButton.innerHTML = "UNTOGGLE COMIC MODE"
     }
     else{
-        applyStylesButton.innerHTML = "Apply"
+        applyStylesButton.innerHTML = "TOGGLE COMIC MODE"
     }
     const prefs = {
         mainColor: mainColorInput.value,
