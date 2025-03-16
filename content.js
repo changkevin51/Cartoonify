@@ -7,6 +7,9 @@ let mainColor = '#ef5350';
 let enableSpeechBubbles = true;
 let enableTurtle = true;
 let enablePong = true;
+const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
+const audio = new Audio(audioUrl);
+audio.preload = "auto";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
@@ -17,14 +20,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enablePong = message.prefs.enablePong;
     
     if (myInteger%2 === 0){
-        applyStyles();
+        styleEl = applyStyles();
         if (enableTurtle) applyStyles2();
         if (enablePong) applyStyles3();
         if (enableSpeechBubbles) addSpeechBubbles();
         sendResponse({status: "Cartoonify activated! POW!"});
     } 
     else {
-      unapplyStyles()  
+      unapplyStyles(styleEl); 
       sendResponse({status: "Back to reality! ZOOM!"});
     }
     myInteger++;
@@ -288,7 +291,10 @@ function unapplyStyles(){
       style.parentNode.removeChild(style);
     }
   });
-  
+  if (styleEl && styleEl.parentNode) {
+    styleEl.parentNode.removeChild(styleEl);
+    styleEl = null;
+  }
   if (turtleDiv && turtleDiv.parentNode) {
     turtleDiv.parentNode.removeChild(turtleDiv);
     turtleDiv = null;
@@ -472,6 +478,17 @@ function addPongGame() {
   }
   
   function collision(b, p) {
+    // var audio = new Audio("media/Boing.mp3");
+    // audio.play();
+    // const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
+    // // const audioUrl2 = chrome.runtime.getURL("resonance/Boing.mp3");
+    
+    // const audio = new Audio(audioUrl);
+    // // const resonance = new Audio(audioUrl2)
+    // audio.play();
+    // resonance.play();
+    audio.currentTime = 0; // Reset playback to the start
+    audio.play();
     b.top = b.y - b.radius;
     b.bottom = b.y + b.radius;
     b.left = b.x - b.radius;

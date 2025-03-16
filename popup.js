@@ -9,6 +9,7 @@ const speechBubblesCheckbox = document.getElementById('enableSpeechBubbles');
 const turtleCheckbox = document.getElementById('enableTurtle');
 const pongCheckbox = document.getElementById('enablePong');
 const presetColors = document.getElementById('presetColors');
+var i = 0;
 
 
 chrome.storage.sync.get(['savedText'], function (result) {
@@ -79,6 +80,13 @@ updateColorPreview(mainColorInput.value);
 
 
 applyStylesButton.addEventListener('click', () => {
+    i++;
+    if (i%2==1){
+        applyStylesButton.innerHTML = "Unapply"
+    }
+    else{
+        applyStylesButton.innerHTML = "Apply"
+    }
     const prefs = {
         mainColor: mainColorInput.value,
         enableSoundEffects: soundEffectsCheckbox.checked,
