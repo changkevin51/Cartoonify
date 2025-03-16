@@ -1,3 +1,4 @@
+
 const inputText = document.getElementById('inputText');
 const saveButton = document.getElementById('saveButton');
 const outputText = document.getElementById('outputText');
@@ -11,6 +12,7 @@ const presetColors = document.getElementById('presetColors');
 const invertCheckbox = document.getElementById('enableinvert');
 const pigRoasterCheckbox = document.getElementById('enablePigRoaster');
 const nerdSummarizerCheckbox = document.getElementById('enableNerdSummarizer');
+const rgbCheckbox = document.getElementById('enableRGB');
 var i = 0;
 
 
@@ -32,6 +34,7 @@ chrome.storage.sync.get(['cartoonifyPrefs'], function (result) {
         invertCheckbox.checked = prefs.enableinvert !== false;
         pigRoasterCheckbox.checked = prefs.enablePigRoaster !== false;
         nerdSummarizerCheckbox.checked = prefs.enableNerdSummarizer !== false;
+        rgbCheckbox.checked = prefs.enableRGB !== false;
         
         updateColorPreview(mainColorInput.value);
     }
@@ -55,6 +58,7 @@ function savePreferences() {
         enableinvert: invertCheckbox.checked,
         enablePigRoaster: pigRoasterCheckbox.checked,
         enableNerdSummarizer: nerdSummarizerCheckbox.checked,
+        enableRGB: rgbCheckbox.checked,
     };
     
     chrome.storage.sync.set({ cartoonifyPrefs: prefs });
@@ -84,6 +88,7 @@ pongCheckbox.addEventListener('change', savePreferences);
 invertCheckbox.addEventListener('change', savePreferences);
 pigRoasterCheckbox.addEventListener('change', savePreferences);
 nerdSummarizerCheckbox.addEventListener('change', savePreferences);
+rgbCheckbox.addEventListener('change', savePreferences)
 
 updateColorPreview(mainColorInput.value);
 
@@ -105,6 +110,7 @@ applyStylesButton.addEventListener('click', () => {
         enableinvert: invertCheckbox.checked,
         enablePigRoaster: pigRoasterCheckbox.checked,
         enableNerdSummarizer: nerdSummarizerCheckbox.checked,
+        enableRGB: rgbCheckbox.checked,
     };
     
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {

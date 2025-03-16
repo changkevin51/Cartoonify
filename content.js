@@ -14,6 +14,7 @@ let pigElement = null;
 let roastBubble = null;
 let nerdElement = null; 
 let summaryBubble = null; 
+let enableRGB = true;
 const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
 const audio = new Audio(audioUrl);
 audio.preload = "auto";
@@ -21,6 +22,8 @@ audio.volume = 0.7;
 audio.loop = true;
 audio.currentTime = 0;
 audio.load();
+let j = 0;
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
@@ -32,6 +35,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enableinvert = message.prefs.enableinvert;
     enablePigRoaster = message.prefs.enablePigRoaster !== undefined ? message.prefs.enablePigRoaster : true;
     enableNerdSummarizer = message.prefs.enableNerdSummarizer !== undefined ? message.prefs.enableNerdSummarizer : true; 
+    enableRGB = message.prefs.enableRGB;
     
     if (myInteger%2 === 0){
         styleEl = applyStyles();
@@ -40,11 +44,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (enableSpeechBubbles) addSpeechBubbles();
         if (enableinvert) applyInvert();
         if (enablePigRoaster) addPigRoaster();
-        if (enableNerdSummarizer) addNerdSummarizer(); 
+        if (enableNerdSummarizer) addNerdSummarizer();
+        if (enableRGB) applyRGB();
         sendResponse({status: "Cartoonify activated! POW!"});
-    } 
+    }
     else {
-      unapplyStyles(styleEl); 
+      unapplyStyles(); 
       sendResponse({status: "Back to reality! ZOOM!"});
     }
     myInteger++;
@@ -268,10 +273,19 @@ function isElementVisible(element) {
          rect.right <= (window.innerWidth || document.documentElement.clientWidth);
 }
 
+function applyRGB() {
+  rgbInterval = setInterval(rotate, 100);
+  j = 0;
+  function rotate() {
+    j += 10;
+    document.body.style.filter = `hue-rotate(${j}deg)`;
+  }
+}
+
 function applyStyles2() {
   turtleDiv = document.createElement('div');
   turtleDiv.id = 'moving-turtle';
-  turtleDiv.style.cssText = 'position: fixed; bottom: -6px; z-index: 9999; pointer-events: none; background: transparent !important;';
+  turtleDiv.style.cssText = 'position: sticky; bottom: -6px; z-index: 9999; pointer-events: none; background: transparent !important;';
   
   const turtleImg = document.createElement('img');
   turtleImg.src = chrome.runtime.getURL('media/turtle.gif');
@@ -320,6 +334,11 @@ function unapplyStyles(){
   if (turtleDiv && turtleDiv.parentNode) {
     turtleDiv.parentNode.removeChild(turtleDiv);
     turtleDiv = null;
+  }
+
+  if (rgbInterval) {
+    clearInterval(rgbInterval);
+    //document.body.style.filter = `hue-color(-${j}deg);`
   }
   
   if (pongGame && pongGame.parentNode) {
