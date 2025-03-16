@@ -22,8 +22,7 @@
     }
   },
   "web_accessible_resources": [{
-  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/Boing.mp3", "media/Resonance.mp3"], 
+  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/pig.png", "media/spongebob.png", "media/Boing.mp3", "media/Resonance.mp3"], 
     "matches": ["<all_urls>"]
-    
   }]
 }

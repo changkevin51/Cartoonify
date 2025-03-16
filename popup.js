@@ -1,4 +1,3 @@
-
 const inputText = document.getElementById('inputText');
 const saveButton = document.getElementById('saveButton');
 const outputText = document.getElementById('outputText');
@@ -9,7 +8,9 @@ const speechBubblesCheckbox = document.getElementById('enableSpeechBubbles');
 const turtleCheckbox = document.getElementById('enableTurtle');
 const pongCheckbox = document.getElementById('enablePong');
 const presetColors = document.getElementById('presetColors');
-const invertCheckbox = document.getElementById('enableinvert')
+const invertCheckbox = document.getElementById('enableinvert');
+const pigRoasterCheckbox = document.getElementById('enablePigRoaster');
+const nerdSummarizerCheckbox = document.getElementById('enableNerdSummarizer');
 var i = 0;
 
 
@@ -28,7 +29,9 @@ chrome.storage.sync.get(['cartoonifyPrefs'], function (result) {
         speechBubblesCheckbox.checked = prefs.enableSpeechBubbles !== false;
         turtleCheckbox.checked = prefs.enableTurtle !== false;
         pongCheckbox.checked = prefs.enablePong !== false;
-        invertCheckbox.checked = prefs.enableinvert !==false;
+        invertCheckbox.checked = prefs.enableinvert !== false;
+        pigRoasterCheckbox.checked = prefs.enablePigRoaster !== false;
+        nerdSummarizerCheckbox.checked = prefs.enableNerdSummarizer !== false;
         
         updateColorPreview(mainColorInput.value);
     }
@@ -50,6 +53,8 @@ function savePreferences() {
         enableTurtle: turtleCheckbox.checked,
         enablePong: pongCheckbox.checked,
         enableinvert: invertCheckbox.checked,
+        enablePigRoaster: pigRoasterCheckbox.checked,
+        enableNerdSummarizer: nerdSummarizerCheckbox.checked,
     };
     
     chrome.storage.sync.set({ cartoonifyPrefs: prefs });
@@ -77,6 +82,8 @@ speechBubblesCheckbox.addEventListener('change', savePreferences);
 turtleCheckbox.addEventListener('change', savePreferences);
 pongCheckbox.addEventListener('change', savePreferences);
 invertCheckbox.addEventListener('change', savePreferences);
+pigRoasterCheckbox.addEventListener('change', savePreferences);
+nerdSummarizerCheckbox.addEventListener('change', savePreferences);
 
 updateColorPreview(mainColorInput.value);
 
@@ -96,6 +103,8 @@ applyStylesButton.addEventListener('click', () => {
         enableTurtle: turtleCheckbox.checked,
         enablePong: pongCheckbox.checked,
         enableinvert: invertCheckbox.checked,
+        enablePigRoaster: pigRoasterCheckbox.checked,
+        enableNerdSummarizer: nerdSummarizerCheckbox.checked,
     };
     
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {

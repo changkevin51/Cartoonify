@@ -8,6 +8,12 @@ let enableSpeechBubbles = true;
 let enableTurtle = true;
 let enablePong = true;
 let enableinvert = true;
+let enablePigRoaster = true; 
+let enableNerdSummarizer = true; 
+let pigElement = null; 
+let roastBubble = null;
+let nerdElement = null; 
+let summaryBubble = null; 
 const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
 const audio = new Audio(audioUrl);
 audio.preload = "auto";
@@ -24,6 +30,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enableTurtle = message.prefs.enableTurtle;
     enablePong = message.prefs.enablePong;
     enableinvert = message.prefs.enableinvert;
+    enablePigRoaster = message.prefs.enablePigRoaster !== undefined ? message.prefs.enablePigRoaster : true;
+    enableNerdSummarizer = message.prefs.enableNerdSummarizer !== undefined ? message.prefs.enableNerdSummarizer : true; 
     
     if (myInteger%2 === 0){
         styleEl = applyStyles();
@@ -31,6 +39,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (enablePong) applyStyles3();
         if (enableSpeechBubbles) addSpeechBubbles();
         if (enableinvert) applyInvert();
+        if (enablePigRoaster) addPigRoaster();
+        if (enableNerdSummarizer) addNerdSummarizer(); 
         sendResponse({status: "Cartoonify activated! POW!"});
     } 
     else {
@@ -317,6 +327,8 @@ function unapplyStyles(){
     pongGame = null;
   }
   
+  removePigRoaster();
+  removeNerdSummarizer(); 
   
   speechBubbles.forEach(bubble => {
     if (bubble && bubble.parentNode) {
@@ -616,4 +628,402 @@ function addPongGame() {
   }
   
   gameLoop();
+}
+
+function addPigRoaster() {
+  
+  removePigRoaster();
+  
+  
+  pigElement = document.createElement('div');
+  pigElement.id = 'roast-pig';
+  pigElement.style.cssText = `
+    position: fixed;
+    right: -80px;
+    bottom: 100px; /* Moved lower down instead of vertically centered */
+    width: 170px;
+    height: 200px;
+    background-image: url('${chrome.runtime.getURL('media/pig.png')}');
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+    z-index: 10000;
+    cursor: pointer;
+    transition: right 0.3s ease;
+    background-color: transparent !important; /* Ensure transparent background */
+  `;
+  
+  
+  pigElement.addEventListener('mouseenter', () => {
+    pigElement.style.right = '0';
+  });
+  
+  pigElement.addEventListener('mouseleave', () => {
+    pigElement.style.right = '-80px';
+  });
+  
+  
+  pigElement.addEventListener('click', generateRoast);
+  
+  document.body.appendChild(pigElement);
+  
+  
+  const pigStyle = document.createElement('style');
+  pigStyle.textContent = `
+    #roast-pig {
+      background-color: transparent !important;
+    }
+    
+    /* Roast bubble styling */
+    .roast-bubble {
+      background-color: white !important;
+      box-shadow: 3px 3px 5px rgba(0,0,0,0.3) !important;
+      font-family: 'Bangers', cursive !important;
+      font-size: 16px !important;
+      color: ${mainColor} !important;
+      border: 3px solid ${mainColor} !important;
+      border-radius: 15px !important;
+      padding: 15px !important;
+    }
+    
+    .roast-bubble-tail {
+      border-left-color: ${mainColor} !important;
+      background-color: transparent !important;
+    }
+  `;
+  document.head.appendChild(pigStyle);
+}
+
+
+async function generateRoast() {
+  
+  const pageText = document.body.innerText.substring(0, 1000); 
+  const pageTitle = document.title;
+  
+  
+  showRoastBubble("Cooking up a roast... 🔥");
+  
+  try {
+    
+    const fallbackRoasts = [
+      "Oink oink! Spending your time on this page? Your productivity just went to the slaughterhouse!",
+      "Squeal! Reading this when you should be working? That's what I call hogwashing your responsibilities!",
+      "Oink! Nice try opening this page. Your browser history is messier than a pig pen!",
+      "OINK! This page again? You're really wallowing in mediocrity today!",
+      "Snort snort! If your boss saw this page, you'd be bacon by morning!",
+      "Oink oink! Your interest in this content is as questionable as my table manners!"
+    ];
+
+    const GEMINI_API_KEY = "AIzaSyARBgeRS6EQS4tsdO9yQvYh_biYNbOVJeU";
+    
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 5000)
+    );
+    
+    const fetchPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts:[{text: `Based on this webpage title: "${pageTitle}" and content: "${pageText}", create a short, funny, pig-themed roast of the user for browsing this page. Make it witty, sarcastic and comically insulting, but not mean-spirited. Keep it under 150 characters. Start with "Oink oink!" or similar pig sounds.`}]
+        }]
+      })
+    });
+    
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    const data = await response.json();
+    
+    if (data && data.candidates && data.candidates[0] && 
+        data.candidates[0].content && data.candidates[0].content.parts && 
+        data.candidates[0].content.parts[0]) {
+      const roast = data.candidates[0].content.parts[0].text;
+      showRoastBubble(roast);
+    } else {
+      const fallbackRoast = fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
+      showRoastBubble(fallbackRoast);
+    }
+  } catch (error) {
+    console.error("Roast generation failed:", error);
+    
+    const fallbackRoasts = [
+      "Oink oink! Spending your time on this page? Your productivity just went to the slaughterhouse!",
+      "Squeal! Reading this when you should be working? That's what I call hogwashing your responsibilities!",
+      "Oink! Nice try opening this page. Your browser history is messier than a pig pen!",
+      "OINK! This page again? You're really wallowing in mediocrity today!",
+      "Snort snort! If your boss saw this page, you'd be bacon by morning!",
+      "Oink oink! Your interest in this content is as questionable as my table manners!"
+    ];
+    
+    const fallbackRoast = fallbackRoasts[Math.floor(Math.random() * fallbackRoasts.length)];
+    showRoastBubble(fallbackRoast);
+  }
+}
+
+function showRoastBubble(text) {
+  
+  if (roastBubble && roastBubble.parentNode) {
+    roastBubble.parentNode.removeChild(roastBubble);
+  }
+  
+  
+  roastBubble = document.createElement('div');
+  roastBubble.className = 'roast-bubble';
+  roastBubble.style.cssText = `
+    position: fixed;
+    right: 120px;
+    bottom: 160px; /* Adjusted to align with pig */
+    background: white !important;
+    border: 3px solid ${mainColor};
+    border-radius: 15px;
+    padding: 15px;
+    max-width: 300px;
+    z-index: 10001;
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    color: ${mainColor};
+  `;
+  
+  roastBubble.textContent = text;
+  
+  
+  const tail = document.createElement('div');
+  tail.className = 'roast-bubble-tail';
+  tail.style.cssText = `
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 15px solid ${mainColor};
+    background-color: transparent !important;
+  `;
+  
+  roastBubble.appendChild(tail);
+  document.body.appendChild(roastBubble);
+  
+  
+  setTimeout(() => {
+    if (roastBubble && roastBubble.parentNode) {
+      roastBubble.parentNode.removeChild(roastBubble);
+      roastBubble = null;
+    }
+  }, 10000);
+}
+
+
+function removePigRoaster() {
+  if (pigElement && pigElement.parentNode) {
+    pigElement.parentNode.removeChild(pigElement);
+    pigElement = null;
+  }
+  
+  if (roastBubble && roastBubble.parentNode) {
+    roastBubble.parentNode.removeChild(roastBubble);
+    roastBubble = null;
+  }
+}
+
+
+function addNerdSummarizer() {
+  
+  removeNerdSummarizer();
+  
+  
+  nerdElement = document.createElement('div');
+  nerdElement.id = 'nerd-summarizer';
+  nerdElement.style.cssText = `
+    position: fixed;
+    left: -80px;
+    bottom: 100px;
+    width: 170px;
+    height: 200px;
+    background-image: url('${chrome.runtime.getURL('media/spongebob.png')}');
+    background-size: contain;
+    background-position: right;
+    background-repeat: no-repeat;
+    z-index: 10000;
+    cursor: pointer;
+    transition: left 0.3s ease;
+    background-color: transparent !important;
+  `;
+  
+  
+  nerdElement.addEventListener('mouseenter', () => {
+    nerdElement.style.left = '0';
+  });
+  
+  nerdElement.addEventListener('mouseleave', () => {
+    nerdElement.style.left = '-80px';
+  });
+  
+  nerdElement.addEventListener('click', generateSummary);
+  
+  document.body.appendChild(nerdElement);
+  
+  const nerdStyle = document.createElement('style');
+  nerdStyle.textContent = `
+    #nerd-summarizer {
+      background-color: transparent !important;
+    }
+    
+    /* Summary bubble styling */
+    .summary-bubble {
+      background-color: white !important;
+      box-shadow: 3px 3px 5px rgba(0,0,0,0.3) !important;
+      font-family: 'Bangers', cursive !important;
+      font-size: 16px !important;
+      color: ${mainColor} !important;
+      border: 3px solid ${mainColor} !important;
+      border-radius: 15px !important;
+      padding: 15px !important;
+    }
+    
+    .summary-bubble-tail {
+      border-right-color: ${mainColor} !important;
+      background-color: transparent !important;
+    }
+  `;
+  document.head.appendChild(nerdStyle);
+}
+
+function removeNerdSummarizer() {
+  if (nerdElement && nerdElement.parentNode) {
+    nerdElement.parentNode.removeChild(nerdElement);
+    nerdElement = null;
+  }
+  
+  if (summaryBubble && summaryBubble.parentNode) {
+    summaryBubble.parentNode.removeChild(summaryBubble);
+    summaryBubble = null;
+  }
+}
+
+async function generateSummary() {
+  const pageText = document.body.innerText.substring(0, 1500); 
+  const pageTitle = document.title;
+  const metaDesc = document.querySelector('meta[name="description"]')?.content || '';
+  const h1Text = Array.from(document.querySelectorAll('h1')).map(h => h.innerText).join('. ');
+  
+  
+  showSummaryBubble("Erm, analyzing page content... *adjusts glasses*");
+  
+  try {
+    
+    const fallbackSummaries = [
+      "Erm, actually this appears to be a webpage about general internet content. *adjusts glasses* The information architecture could be improved by approximately 37.2%.",
+      "Well, technically speaking, this site contains HTML, CSS, and Javascript. *snorts* I could have coded it better in 1/3 the time.",
+      "Um, according to my calculations, this page has a complexity rating of 3.7 on the Flesch-Kincaid scale. *pushes up glasses* Not that impressive really.",
+      "Erm, I've analyzed this content and found exactly 42 semantic errors. *cleans glasses nervously* The developer clearly didn't validate their markup.",
+      "Actually, this page loads in 2.3 seconds, which is approximately 0.7 seconds slower than optimal. *adjusts bowtie* I could optimize it with a few algorithmic adjustments.",
+      "Based on my extensive research, this content has a correlation coefficient of 0.86 with similar websites. *pushes glasses up* Not statistically significant enough."
+    ];
+
+
+    const GEMINI_API_KEY = "AIzaSyCL_N3hmVIlEE5jRY7-stVzAgD4H2JVkG0";
+
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 5000)
+    );
+    
+    const fetchPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts:[{text: `Analyze this webpage with title: "${pageTitle}", description: "${metaDesc}", main heading: "${h1Text}" and content: "${pageText}". Create a brief, nerdy summary of what this page is about. Make it sound like a stereotypical nerd - include phrases like "erm, actually", "technically speaking", "*adjusts glasses*", or "*pushes up glasses*". Keep it under 150 characters. Be a bit condescending but factually accurate.`}]
+        }]
+      })
+    });
+    
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    const data = await response.json();
+    
+    if (data && data.candidates && data.candidates[0] && 
+        data.candidates[0].content && data.candidates[0].content.parts && 
+        data.candidates[0].content.parts[0]) {
+      const summary = data.candidates[0].content.parts[0].text;
+      showSummaryBubble(summary);
+    } else {
+      const fallbackSummary = fallbackSummaries[Math.floor(Math.random() * fallbackSummaries.length)];
+      showSummaryBubble(fallbackSummary);
+    }
+  } catch (error) {
+    console.error("Summary generation failed:", error);
+    
+    const fallbackSummaries = [
+      "Erm, actually this appears to be a webpage about general internet content. *adjusts glasses* The information architecture could be improved by approximately 37.2%.",
+      "Well, technically speaking, this site contains HTML, CSS, and Javascript. *snorts* I could have coded it better in 1/3 the time.",
+      "Um, according to my calculations, this page has a complexity rating of 3.7 on the Flesch-Kincaid scale. *pushes up glasses* Not that impressive really.",
+      "Erm, I've analyzed this content and found exactly 42 semantic errors. *cleans glasses nervously* The developer clearly didn't validate their markup.",
+      "Actually, this page loads in 2.3 seconds, which is approximately 0.7 seconds slower than optimal. *adjusts bowtie* I could optimize it with a few algorithmic adjustments.",
+      "Based on my extensive research, this content has a correlation coefficient of 0.86 with similar websites. *pushes glasses up* Not statistically significant enough."
+    ];
+    
+    const fallbackSummary = fallbackSummaries[Math.floor(Math.random() * fallbackSummaries.length)];
+    showSummaryBubble(fallbackSummary);
+  }
+}
+
+function showSummaryBubble(text) {
+  
+  if (summaryBubble && summaryBubble.parentNode) {
+    summaryBubble.parentNode.removeChild(summaryBubble);
+  }
+  
+  
+  summaryBubble = document.createElement('div');
+  summaryBubble.className = 'summary-bubble';
+  summaryBubble.style.cssText = `
+    position: fixed;
+    left: 120px;
+    bottom: 160px; /* Aligned with the nerd character */
+    background: white !important;
+    border: 3px solid ${mainColor};
+    border-radius: 15px;
+    padding: 15px;
+    max-width: 300px;
+    z-index: 10001;
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+    font-family: 'Bangers', cursive;
+    font-size: 16px;
+    color: ${mainColor};
+  `;
+  
+  summaryBubble.textContent = text;
+  
+  
+  const tail = document.createElement('div');
+  tail.className = 'summary-bubble-tail';
+  tail.style.cssText = `
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 15px solid ${mainColor};
+    background-color: transparent !important;
+  `;
+  
+  summaryBubble.appendChild(tail);
+  document.body.appendChild(summaryBubble);
+  
+  
+  setTimeout(() => {
+    if (summaryBubble && summaryBubble.parentNode) {
+      summaryBubble.parentNode.removeChild(summaryBubble);
+      summaryBubble = null;
+    }
+  }, 15000);
 }
