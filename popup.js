@@ -112,7 +112,10 @@ applyStylesButton.addEventListener('click', () => {
         enableNerdSummarizer: nerdSummarizerCheckbox.checked,
         enableRGB: rgbCheckbox.checked,
     };
-    
+    chrome.storage.sync.set({ userPrefs: prefs }, () => {
+        console.log("Preferences saved.");
+    });
+
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, {
             action: "applyStyles",

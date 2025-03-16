@@ -15,16 +15,63 @@ let roastBubble = null;
 let nerdElement = null; 
 let summaryBubble = null; 
 let enableRGB = true;
-const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
-const audio = new Audio(audioUrl);
-audio.preload = "auto";
-audio.volume = 0.7;
-audio.loop = true;
-audio.currentTime = 0;
-audio.load();
 let j = 0;
 
+const audio = {
+  "chill": new Audio(chrome.runtime.getURL("media/Chill.mp3")),
+  "kachow": new Audio(chrome.runtime.getURL("media/kachow.mp3")),
+  "boing": new Audio(chrome.runtime.getURL("media/Boing.mp3")),
+  "pow": new Audio(chrome.runtime.getURL("media/Pow.mp3")),
+  "boom": new Audio(chrome.runtime.getURL("media/Boom.mp3")),
+  "zap": new Audio(chrome.runtime.getURL("media/Zap.mp3"))
+}
 
+audio.chill.preload = "auto";
+audio.kachow.preload = "auto";
+audio.boing.preload = "auto";
+audio.pow.preload = "auto";
+audio.boom.preload = "auto";
+audio.zap.preload = "auto";
+
+audio.chill.volume = 0.5;
+audio.kachow.volume = 1.0;
+audio.boing.volume = 0.1;
+audio.pow.volume = 1.0;
+audio.boom.volume = 1.0;
+audio.zap.volume = 0.2;
+
+
+audio.chill.loop = true;
+audio.kachow.loop = false;
+audio.boing.loop = true;
+audio.pow.loop = false;
+audio.boom.loop = false;
+audio.zap.loop = false;
+
+audio.chill.currentTime = 0;
+audio.kachow.currentTime = 0;
+audio.boing.currentTime = 0.8;
+audio.pow.currentTime = 0;
+audio.boom.currentTime = 0;
+audio.zap.currentTime = 0;
+
+audio.chill.load();
+audio.kachow.load();
+audio.boing.load();
+audio.pow.load();
+audio.boom.load();
+audio.zap.load();
+
+audio.chill.play();
+
+// audio.boing.load();
+// const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
+// const audio = new Audio(audioUrl);
+// audio.preload = "auto";
+// audio.volume = 0.7;
+// audio.loop = true;
+// audio.currentTime = 0;
+// audio.load();
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
     
@@ -200,9 +247,17 @@ function applyStyles() {
 }
 
 function addComicEffect(x, y) {
-  const effects = ['POW!', 'BAM!', 'ZOOM!', 'WHAM!', 'BOOM!', 'KAPOW!', 'ZAP!'];
+  const effects = ['POW!', 'KACHOW!', 'BOOM!', 'ZAP!'];
   const effect = effects[Math.floor(Math.random() * effects.length)];
-  
+  if (effect === 'KACHOW!'){
+    audio.kachow.play();
+  } else if (effect === "POW!"){
+    audio.pow.play();
+  } else if (effect === "BOOM!"){
+    audio.boom.play();
+  } else if (effect === "ZAP!"){
+    audio.zap.play();
+  }
   const comicEffect = document.createElement('div');
   comicEffect.className = 'comic-effect';
   comicEffect.textContent = effect;
@@ -296,7 +351,7 @@ function applyStyles2() {
   document.body.appendChild(turtleDiv);
   const turtleStyleEl = document.createElement('style');
 
-  audio.play()
+  audio.boing.play();
 
 
   turtleStyleEl.textContent = `
@@ -317,8 +372,9 @@ function applyStyles2() {
 
 function unapplyStyles(){
   const styles = document.querySelectorAll('style');
-  audio.pause();
-  audio.currentTime = 0;
+  audio.boing.pause();
+  // audio.kachow.pause();
+  audio.currentTime = 0.8;
   styles.forEach(style => {
     if (style.textContent.includes('Bangers') || 
         style.textContent.includes('moveLeftToRight') ||
@@ -540,8 +596,8 @@ function addPongGame() {
     // resonance.play();
     
     
-    // audio.currentTime = 0; // Reset playback to the start
-    // audio.play();
+    audio.currentTime = 0; // Reset playback to the start
+    audio.play();
     b.top = b.y - b.radius;
     b.bottom = b.y + b.radius;
     b.left = b.x - b.radius;

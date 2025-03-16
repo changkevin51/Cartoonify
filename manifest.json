@@ -22,7 +22,8 @@
     }
   },
   "web_accessible_resources": [{
-  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/pig.png", "media/spongebob.png", "media/Boing.mp3", "media/Resonance.mp3"], 
-    "matches": ["<all_urls>"]
+  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/Boing.mp3", "media/Resonance.mp3", "media/kachow.mp3", "media/Boom.mp3", "media/Pow.mp3" , "media/Zap.mp3", "media/Chill.mp3", "media/spongebob.png", "media/pig.png", "media/icon.png"], 
+  "matches": ["<all_urls>"]
+    
   }]
 }
