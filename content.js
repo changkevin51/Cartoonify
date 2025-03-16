@@ -17,6 +17,12 @@ let nerdElement = null;
 let summaryBubble = null; 
 let enableRGB = true;
 let j = 0;
+// Add new variables for cat and cursor tracking
+let catElement = null;
+let lastCursorX = 0;
+let lastCursorY = 0;
+let isCatFacingRight = false;
+let cursorStyleElement = null;
 
 const audio = {
   "chill": new Audio(chrome.runtime.getURL("media/Chill.mp3")),
@@ -63,7 +69,6 @@ audio.pow.load();
 audio.boom.load();
 audio.zap.load();
 
-audio.chill.play();
 
 // Add this helper function to pause all audio elements
 function pauseAllAudio() {
@@ -77,7 +82,8 @@ function pauseAllAudio() {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
-    
+    audio.chill.play();
+
     mainColor = message.prefs.mainColor || mainColor;
 
     const wasSoundEnabled = enableSoundEffects;
@@ -147,13 +153,23 @@ function applyStyles() {
   styleEl = document.createElement('style');
   
   const doodlesURL = chrome.runtime.getURL('media/doodles.jpg');
+  const cursorURL = chrome.runtime.getURL('media/mousecursor.png');
+  const clickerURL = chrome.runtime.getURL('media/mouseclicker.png');
   
   styleEl.textContent = `
   * {
       font-family: 'Bangers', cursive !important;
       color: ${mainColor};
       font-weight: bold;
+      cursor: url('${cursorURL}') 16 16, auto !important;
   }
+  
+  a, button, [role="button"], input[type="submit"], input[type="button"], input[type="reset"], 
+  [onclick], [onmousedown], select, details, summary, [aria-haspopup="true"],
+  [class*="btn"], [class*="button"], [id*="btn"], [id*="button"] {
+      cursor: url('${clickerURL}'), pointer !important;
+  }
+  
   body {
       background: white !important;
       background-image: url('${doodlesURL}') !important;
@@ -282,14 +298,77 @@ function applyStyles() {
       addComicEffect(e.clientX, e.clientY);
     }
   });
+  
+  // Add cat that follows cursor
+  addCatChase();
 }
 
+// Function to add the cat that follows the cursor
+function addCatChase() {
+  // Remove any existing cat
+  if (catElement && catElement.parentNode) {
+    catElement.parentNode.removeChild(catElement);
+  }
+  
+  catElement = document.createElement('div');
+  catElement.id = 'cursor-cat';
+  
+  const catImg = document.createElement('img');
+  catImg.src = chrome.runtime.getURL('media/cat.png');
+  catImg.style.width = '80px'; // Resize cat
+  catImg.style.height = 'auto';
+  catElement.appendChild(catImg);
+  
+  catElement.style.cssText = `
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    transform: scaleX(1);
+    transition: left 0.3s ease-out, top 0.3s ease-out;
+    background: transparent !important;
+    will-change: transform;
+  `;
+  
+  catElement.style.left = '-100px';
+  catElement.style.top = '-100px';
+  
+  document.body.appendChild(catElement);
+  
+  document.addEventListener('mousemove', updateCatPosition);
+}
+
+function updateCatPosition(e) {
+  if (!catElement) return;
+  
+  const cursorX = e.clientX;
+  const cursorY = e.clientY;
+  
+  if (cursorX > lastCursorX && !isCatFacingRight) {
+    catElement.style.transform = 'scaleX(-1)'; 
+    isCatFacingRight = true;
+  } else if (cursorX < lastCursorX && isCatFacingRight) {
+    catElement.style.transform = 'scaleX(1)'; 
+    isCatFacingRight = false;
+  }
+  
+  const catX = cursorX - (isCatFacingRight ? -20 : 80); // Position cat to left or right of cursor
+  const catY = cursorY - 30; // Position cat slightly above cursor
+  
+  setTimeout(() => {
+    if (catElement) {
+      catElement.style.left = `${catX}px`;
+      catElement.style.top = `${catY}px`;
+    }
+  }, 100);
+  
+  lastCursorX = cursorX;
+  lastCursorY = cursorY;
+}
 
 function addComicEffect(x, y) {
   const effects = ['POW!', 'KACHOW!', 'BOOM!', 'ZAP!'];
   const effect = effects[Math.floor(Math.random() * effects.length)];
   
-  // Only play sounds if enabled
   if (enableSoundEffects) {
     if (effect === 'KACHOW!'){
       audio.kachow.play();
@@ -426,7 +505,8 @@ function unapplyStyles(){
     if (style.textContent.includes('Bangers') || 
         style.textContent.includes('moveLeftToRight') ||
         style.textContent.includes('pong-container') || 
-        style.textContent.includes('filter')) {
+        style.textContent.includes('filter') ||
+        style.textContent.includes('cursor')) {
       style.parentNode.removeChild(style);
     }
   });
@@ -466,6 +546,15 @@ function unapplyStyles(){
   });
   
   styleEl = null;
+  
+  // Remove cat element
+  if (catElement && catElement.parentNode) {
+    catElement.parentNode.removeChild(catElement);
+    catElement = null;
+  }
+  
+  // Remove cursor tracking event listener
+  document.removeEventListener('mousemove', updateCatPosition);
 }
 
 function applyStyles3() {
