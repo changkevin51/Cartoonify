@@ -4,6 +4,7 @@ let turtleDiv = null;
 let pongGame = null; 
 let speechBubbles = [];
 let mainColor = '#ef5350';
+let enableSoundEffects = true;
 let enableSpeechBubbles = true;
 let enableTurtle = true;
 let enablePong = true;
@@ -64,18 +65,41 @@ audio.zap.load();
 
 audio.chill.play();
 
-// audio.boing.load();
-// const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
-// const audio = new Audio(audioUrl);
-// audio.preload = "auto";
-// audio.volume = 0.7;
-// audio.loop = true;
-// audio.currentTime = 0;
-// audio.load();
+// Add this helper function to pause all audio elements
+function pauseAllAudio() {
+  Object.values(audio).forEach(audioElement => {
+    audioElement.pause();
+    if (audioElement.loop) {
+      audioElement.currentTime = 0;
+    }
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "applyStyles") {
     
     mainColor = message.prefs.mainColor || mainColor;
+
+    const wasSoundEnabled = enableSoundEffects;
+    enableSoundEffects = message.prefs.enableSoundEffects;
+    
+    // If sound is being disabled, pause all audio
+    if (wasSoundEnabled && !enableSoundEffects) {
+      pauseAllAudio();
+    }
+    
+    // Store previous state of all features
+    const hasAnyFeatureEnabled = 
+      message.prefs.enableSoundEffects ||
+      message.prefs.enableSpeechBubbles ||
+      message.prefs.enableTurtle ||
+      message.prefs.enablePong ||
+      message.prefs.enableinvert ||
+      (message.prefs.enablePigRoaster !== undefined ? message.prefs.enablePigRoaster : true) ||
+      (message.prefs.enableNerdSummarizer !== undefined ? message.prefs.enableNerdSummarizer : true) ||
+      message.prefs.enableRGB;
+
+    enableSoundEffects = message.prefs.enableSoundEffects;
     enableSpeechBubbles = message.prefs.enableSpeechBubbles;
     enableTurtle = message.prefs.enableTurtle;
     enablePong = message.prefs.enablePong;
@@ -84,26 +108,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enableNerdSummarizer = message.prefs.enableNerdSummarizer !== undefined ? message.prefs.enableNerdSummarizer : true; 
     enableRGB = message.prefs.enableRGB;
     
-    if (myInteger%2 === 0){
-        styleEl = applyStyles();
-        if (enableTurtle) applyStyles2();
-        if (enablePong) applyStyles3();
-        if (enableSpeechBubbles) addSpeechBubbles();
-        if (enableinvert) applyInvert();
-        if (enablePigRoaster) addPigRoaster();
-        if (enableNerdSummarizer) addNerdSummarizer();
-        if (enableRGB) applyRGB();
-        sendResponse({status: "Cartoonify activated! POW!"});
+    // Toggle logic - flip the state each time a toggle request comes in
+    if (message.toggle === undefined) {
+      // If not explicitly requested, toggle based on current state
+      myInteger = (myInteger === 0) ? 1 : 0;
+    } else {
+      // If explicitly requested, set to the requested state
+      myInteger = message.toggle ? 1 : 0;
     }
-    else {
+    
+    const shouldApplyStyles = (myInteger === 1);
+    
+    if (shouldApplyStyles) {
+      // Even if no features are enabled, we should still create the basic style 
+      // to show that the extension is active
+      styleEl = applyStyles();
+      
+      // Only apply specific features if they're enabled
+      if (enableSoundEffects) audio.chill.play();
+      if (enableTurtle) applyStyles2();
+      if (enablePong) applyStyles3();
+      if (enableSpeechBubbles) addSpeechBubbles();
+      if (enableinvert) applyInvert();
+      if (enablePigRoaster) addPigRoaster();
+      if (enableNerdSummarizer) addNerdSummarizer();
+      if (enableRGB) applyRGB();
+      
+      sendResponse({status: "Cartoonify activated! POW!", active: true});
+    } else {
       unapplyStyles(); 
-      sendResponse({status: "Back to reality! ZOOM!"});
+      sendResponse({status: "Back to reality! ZOOM!", active: false});
     }
-    myInteger++;
   }
   return true;
 });
-
 
 function applyStyles() {
   styleEl = document.createElement('style');
@@ -246,18 +284,24 @@ function applyStyles() {
   });
 }
 
+
 function addComicEffect(x, y) {
   const effects = ['POW!', 'KACHOW!', 'BOOM!', 'ZAP!'];
   const effect = effects[Math.floor(Math.random() * effects.length)];
-  if (effect === 'KACHOW!'){
-    audio.kachow.play();
-  } else if (effect === "POW!"){
-    audio.pow.play();
-  } else if (effect === "BOOM!"){
-    audio.boom.play();
-  } else if (effect === "ZAP!"){
-    audio.zap.play();
+  
+  // Only play sounds if enabled
+  if (enableSoundEffects) {
+    if (effect === 'KACHOW!'){
+      audio.kachow.play();
+    } else if (effect === "POW!"){
+      audio.pow.play();
+    } else if (effect === "BOOM!"){
+      audio.boom.play();
+    } else if (effect === "ZAP!"){
+      audio.zap.play();
+    }
   }
+  
   const comicEffect = document.createElement('div');
   comicEffect.className = 'comic-effect';
   comicEffect.textContent = effect;
@@ -351,8 +395,10 @@ function applyStyles2() {
   document.body.appendChild(turtleDiv);
   const turtleStyleEl = document.createElement('style');
 
-  audio.boing.play();
-
+  // Only play audio if sound effects are enabled
+  if (enableSoundEffects) {
+    audio.boing.play();
+  }
 
   turtleStyleEl.textContent = `
     @keyframes moveLeftToRight {
@@ -372,9 +418,10 @@ function applyStyles2() {
 
 function unapplyStyles(){
   const styles = document.querySelectorAll('style');
-  audio.boing.pause();
-  // audio.kachow.pause();
-  audio.currentTime = 0.8;
+  
+  // Always pause audio when unapplying styles
+  pauseAllAudio();
+  
   styles.forEach(style => {
     if (style.textContent.includes('Bangers') || 
         style.textContent.includes('moveLeftToRight') ||
@@ -394,7 +441,7 @@ function unapplyStyles(){
 
   if (rgbInterval) {
     clearInterval(rgbInterval);
-    //document.body.style.filter = `hue-color(-${j}deg);`
+    document.body.style.filter = '';  // Reset filter properly
   }
   
   if (pongGame && pongGame.parentNode) {
@@ -585,19 +632,12 @@ function addPongGame() {
   }
   
   function collision(b, p) {
-    // var audio = new Audio("media/Boing.mp3");
-    // audio.play();
-    // const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
-    // // const audioUrl2 = chrome.runtime.getURL("resonance/Boing.mp3");
+    // Only play sound if effects are enabled
+    if (enableSoundEffects) {
+      audio.boing.currentTime = 0;
+      audio.boing.play();
+    }
     
-    // const audio = new Audio(audioUrl);
-    // // const resonance = new Audio(audioUrl2)
-    // audio.play();
-    // resonance.play();
-    
-    
-    audio.currentTime = 0; // Reset playback to the start
-    audio.play();
     b.top = b.y - b.radius;
     b.bottom = b.y + b.radius;
     b.left = b.x - b.radius;
@@ -945,24 +985,24 @@ function addNerdSummarizer() {
   const nerdStyle = document.createElement('style');
   nerdStyle.textContent = `
     #nerd-summarizer {
-      background-color: transparent !important;
+      background-color: transparent !重要;
     }
     
     /* Summary bubble styling */
     .summary-bubble {
       background-color: white !important;
-      box-shadow: 3px 3px 5px rgba(0,0,0,0.3) !important;
-      font-family: 'Bangers', cursive !important;
-      font-size: 16px !important;
-      color: ${mainColor} !important;
-      border: 3px solid ${mainColor} !important;
-      border-radius: 15px !important;
-      padding: 15px !important;
+      box-shadow: 3px 3px 5px rgba(0,0,0,0.3) !重要;
+      font-family: 'Bangers', cursive !重要;
+      font-size: 16px !重要;
+      color: ${mainColor} !重要;
+      border: 3px solid ${mainColor} !重要;
+      border-radius: 15px !重要;
+      padding: 15px !重要;
     }
     
     .summary-bubble-tail {
-      border-right-color: ${mainColor} !important;
-      background-color: transparent !important;
+      border-right-color: ${mainColor} !重要;
+      background-color: transparent !重要;
     }
   `;
   document.head.appendChild(nerdStyle);

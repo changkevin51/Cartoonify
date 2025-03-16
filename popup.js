@@ -1,4 +1,3 @@
-
 const inputText = document.getElementById('inputText');
 const saveButton = document.getElementById('saveButton');
 const outputText = document.getElementById('outputText');
@@ -121,9 +120,14 @@ applyStylesButton.addEventListener('click', () => {
             action: "applyStyles",
             prefs: prefs
         }, function(response) {
+            if (chrome.runtime.lastError) {
+                console.error("Connection error:", chrome.runtime.lastError.message);
+                outputText.textContent = "Error: Please refresh the page and try again";
+                return;
+            }
+            
             if (response && response.status) {
                 outputText.textContent = response.status;
-                
                 
                 document.body.classList.add('activated');
                 setTimeout(() => {
