@@ -3,16 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Extension</title>
+    <title>Cartoonify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="container">
-        <h1>My Extension</h1>>
-        <input type="colour">
-        <input type="text" id="inputText" placeholder="Enter something...">
-        <button id="saveButton">Save</button>
-        <button id="applyStyles">Apply Comic Styling</button>ript>
-        <p id="outputText"></p>
-    </div>    <script src="popup.js"></script></body>
+        <h1>Cartoonify</h1>
+        <div class="color-section">
+            <div class="color-picker">
+                <label for="mainColor">Main Color:</label>
+                <input type="color" id="mainColor" value="#ef5350">
+            </div>
+            <div class="color-presets" id="presetColors"></div>
+        </div>
+        <div class="options">
+            <label><input type="checkbox" id="enableSoundEffects" checked> Sound Effects</label>
+            <label><input type="checkbox" id="enableSpeechBubbles" checked> Speech Bubbles</label>
+            <label><input type="checkbox" id="enableTurtle" checked> Moving Turtle</label>
+            <label><input type="checkbox" id="enablePong" checked> Pong Game</label>
+        </div>
+        <button id="applyStyles" class="main-button">Toggle Comic Mode</button>
+        <div class="status">
+            <p id="outputText">Ready to cartoonify!</p>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
 </html>

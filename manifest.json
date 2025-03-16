@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Comic Sans Everywhere",
+  "name": "Cartoonify",
   "version": "1.0",
-  "description": "Turns all webpage text to Comic Sans.",
+  "description": "A Chrome extension that cartoonifies web pages",
   "permissions": [
     "activeTab",
-    "storage",
-    "scripting"
+    "storage"
   ],
   "content_scripts": [
     {
@@ -15,6 +14,15 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html"
-  }
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "media/icon.png",
+      "48": "media/icon.png",
+      "128": "media/icon.png"
+    }
+  },
+  "web_accessible_resources": [{
+    "resources": ["media/turtle.gif"],
+    "matches": ["<all_urls>"]
+  }]
 }
