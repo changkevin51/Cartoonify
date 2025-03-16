@@ -22,7 +22,7 @@
     }
   },
   "web_accessible_resources": [{
-  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/Boing.mp3", "media/Resonance.mp3", "media/kachow.mp3", "media/Boom.mp3", "media/Pow.mp3" , "media/Zap.mp3", "media/Chill.mp3", "media/spongebob.png", "media/pig.png", "media/icon.png", "media/mousecursor.png", "media/mouseclicker.png", "media/cat.png"], 
+  "resources": ["media/doodles.jpg", "media/turtle.gif", "media/Boing.mp3", "media/Resonance.mp3", "media/kachow.mp3", "media/Boom.mp3", "media/Pow.mp3" , "media/Zap.mp3", "media/Chill.mp3", "media/spongebob.png", "media/pig.png", "media/icon.png", "media/mousecursor.png", "media/mouseclicker.png", "media/cat.png", "media/chillguy.png"], 
   "matches": ["<all_urls>"]
     
   }]

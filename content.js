@@ -8,6 +8,7 @@ let enableSoundEffects = true;
 let enableSpeechBubbles = true;
 let enableTurtle = true;
 let enablePong = true;
+let giantImageElement = null;
 let enableinvert = true;
 let enablePigRoaster = true; 
 let enableNerdSummarizer = true; 
@@ -23,6 +24,7 @@ let lastCursorX = 0;
 let lastCursorY = 0;
 let isCatFacingRight = false;
 let cursorStyleElement = null;
+let enableCat = true;
 
 const audio = {
   "chill": new Audio(chrome.runtime.getURL("media/Chill.mp3")),
@@ -40,11 +42,11 @@ audio.pow.preload = "auto";
 audio.boom.preload = "auto";
 audio.zap.preload = "auto";
 
-audio.chill.volume = 0.5;
-audio.kachow.volume = 1.0;
+audio.chill.volume = 0.4;
+audio.kachow.volume = 0.8;
 audio.boing.volume = 0.1;
-audio.pow.volume = 1.0;
-audio.boom.volume = 1.0;
+audio.pow.volume = 0.8;
+audio.boom.volume = 0.8;
 audio.zap.volume = 0.2;
 
 
@@ -113,6 +115,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enablePigRoaster = message.prefs.enablePigRoaster !== undefined ? message.prefs.enablePigRoaster : true;
     enableNerdSummarizer = message.prefs.enableNerdSummarizer !== undefined ? message.prefs.enableNerdSummarizer : true; 
     enableRGB = message.prefs.enableRGB;
+    enableCat = message.prefs.enableCat !== undefined ? message.prefs.enableCat : true;
     
     // Toggle logic - flip the state each time a toggle request comes in
     if (message.toggle === undefined) {
@@ -129,6 +132,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Even if no features are enabled, we should still create the basic style 
       // to show that the extension is active
       styleEl = applyStyles();
+      showGiantImage();
       
       // Only apply specific features if they're enabled
       if (enableSoundEffects) audio.chill.play();
@@ -139,6 +143,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (enablePigRoaster) addPigRoaster();
       if (enableNerdSummarizer) addNerdSummarizer();
       if (enableRGB) applyRGB();
+      
+      // Add cat chase functionality
+      if (enableCat) addCatChase();
       
       sendResponse({status: "Cartoonify activated! POW!", active: true});
     } else {
@@ -299,8 +306,7 @@ function applyStyles() {
     }
   });
   
-  // Add cat that follows cursor
-  addCatChase();
+  // Note: Removed the addCatChase() call from here since it will be conditionally called in the message listener
 }
 
 // Function to add the cat that follows the cursor
@@ -528,6 +534,10 @@ function unapplyStyles(){
     pongGame.parentNode.removeChild(pongGame);
     pongGame = null;
   }
+  if (giantImageElement && giantImageElement.parentNode) {
+    giantImageElement.parentNode.removeChild(giantImageElement);
+    giantImageElement = null;
+  }
   
   removePigRoaster();
   removeNerdSummarizer(); 
@@ -563,6 +573,55 @@ function applyStyles3() {
   const styleEl = document.createElement('style');
   
   document.head.appendChild(styleEl);
+}
+
+function showGiantImage() {
+  if (giantImageElement && giantImageElement.parentNode) {
+    giantImageElement.parentNode.removeChild(giantImageElement);
+  }
+  
+  giantImageElement = document.createElement('div');
+  giantImageElement.id = 'giant-image';
+  
+  const imageUrl = chrome.runtime.getURL('media/chillguy.png');
+  
+  giantImageElement.style.cssText = `
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('${imageUrl}');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 9990;
+  opacity: 0;
+  pointer-events: none;
+  animation: fadeInOut 10s linear forwards; 
+  background-color: transparent !important;
+`;
+
+const fadeStyle = document.createElement('style');
+fadeStyle.textContent = `
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    25% { opacity: 0.5; } /* Slower fade-in */
+    75% { opacity: 0.5; } /* Hold visibility */
+    100% { opacity: 0; } /* Smooth fade-out */
+  }
+`;
+  
+  document.head.appendChild(fadeStyle);
+  document.body.appendChild(giantImageElement);
+  
+  // Remove the element after animation completes
+  setTimeout(() => {
+    if (giantImageElement && giantImageElement.parentNode) {
+      giantImageElement.parentNode.removeChild(giantImageElement);
+      giantImageElement = null;
+    }
+  }, 14100); // Slightly longer than 5s to ensure animation completes
 }
 
 function applyInvert() {
@@ -721,11 +780,6 @@ function addPongGame() {
   }
   
   function collision(b, p) {
-    // Only play sound if effects are enabled
-    if (enableSoundEffects) {
-      audio.boing.currentTime = 0;
-      audio.boing.play();
-    }
     
     b.top = b.y - b.radius;
     b.bottom = b.y + b.radius;
