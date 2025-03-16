@@ -22,7 +22,7 @@
     }
   },
   "web_accessible_resources": [{
-    "resources": ["media/turtle.gif"],
+  "resources": ["media/doodles.jpg", "media/turtle.gif"],
     "matches": ["<all_urls>"]
   }]
 }

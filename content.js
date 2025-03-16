@@ -36,16 +36,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function applyStyles() {
   styleEl = document.createElement('style');
   
+  const doodlesURL = chrome.runtime.getURL('media/doodles.jpg');
+  
   styleEl.textContent = `
   * {
       font-family: 'Bangers', cursive !important;
       color: ${mainColor};
       font-weight: bold;
   }
-  body, html * {
-    background: white !important;
-    background-image: none !important;
+  body {
+      background: white !important;
+      background-image: url('${doodlesURL}') !important;
+      background-repeat: repeat;
+      background-size: auto;
   }
+    
+  img {
+  filter: contrast(1000%) brightness(100%);
+  }
+  
+  /* Make content containers semi-transparent to show background */
+  p, div, span, section, article, main, header, footer, aside, nav {
+      background-color: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  /* Specific elements with fully transparent backgrounds */
+  #moving-turtle, #moving-turtle *, .speech-bubble, #pong-container, #pong-canvas {
+    background: transparent !important;
+  }
+  
   *[style*="border"], *[class*="border"], *[id*="border"], 
   *[border], *[style*="outline"], table, td, th {
     border-width: 5px !important;
@@ -53,10 +72,6 @@ function applyStyles() {
     border-color: ${mainColor} !important;
   }
   
-  #moving-turtle, #moving-turtle *, .speech-bubble {
-    border: none !important;
-    background: transparent !important;
-  }
   @keyframes wobble {
     0% { transform: rotate(2deg); }
     50% { transform: rotate(-2deg); }
@@ -66,25 +81,10 @@ function applyStyles() {
   h1, h2, h3 {
     display: inline-block;
     animation: wobble 0.2s infinite alternate ease-in-out;
-  }
-  img {
-    filter: contrast(1000%) brightness(100%);
-    animation: wobble 0.2s infinite alternate ease-in-out
-  }
-  #moving-turtle img, .comic-effect img {
-    filter: none;
-    animation: none;
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    padding: 5px !important;
   }
   
-  button {
-    animation: bounce 0.3s infinite alternate ease-in-out;
-  }
-  
-  /* Comic book dot pattern overlay */
   body::before {
     content: '';
     position: fixed;
@@ -93,9 +93,10 @@ function applyStyles() {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 9995;
-    background-image: radial-gradient(${mainColor}22 1px, transparent 1px);
-    background-size: 10px 10px;
+    z-index: -1;
+    background-repeat: repeat;
+    background-size: auto;
+    opacity: 0.5;
   }
   
   /* Comic book style action words */
@@ -138,6 +139,22 @@ function applyStyles() {
     border: 10px solid transparent;
     border-top-color: ${mainColor};
     border-bottom: 0;
+  }
+  
+  /* Hover effects for images and links */
+  img:hover {
+    transform: scale(1.5);
+    transition: transform 0.3s ease;
+    z-index: 9996;
+    position: relative;
+  }
+  
+  a:hover {
+    transform: scale(1.5);
+    display: inline-block;
+    transition: transform 0.2s ease;
+    z-index: 9996;
+    position: relative;
   }
   `;
   
