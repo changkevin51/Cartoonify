@@ -7,6 +7,7 @@ let mainColor = '#ef5350';
 let enableSpeechBubbles = true;
 let enableTurtle = true;
 let enablePong = true;
+let enableinvert = true;
 const audioUrl = chrome.runtime.getURL("media/Boing.mp3");
 const audio = new Audio(audioUrl);
 audio.preload = "auto";
@@ -18,12 +19,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     enableSpeechBubbles = message.prefs.enableSpeechBubbles;
     enableTurtle = message.prefs.enableTurtle;
     enablePong = message.prefs.enablePong;
+    enableinvert = message.prefs.enableinvert;
     
     if (myInteger%2 === 0){
         styleEl = applyStyles();
         if (enableTurtle) applyStyles2();
         if (enablePong) applyStyles3();
         if (enableSpeechBubbles) addSpeechBubbles();
+        if (enableinvert) applyInvert();
         sendResponse({status: "Cartoonify activated! POW!"});
     } 
     else {
@@ -287,7 +290,8 @@ function unapplyStyles(){
   styles.forEach(style => {
     if (style.textContent.includes('Bangers') || 
         style.textContent.includes('moveLeftToRight') ||
-        style.textContent.includes('pong-container')) { 
+        style.textContent.includes('pong-container') || 
+        style.textContent.includes('filter')) {
       style.parentNode.removeChild(style);
     }
   });
@@ -327,10 +331,18 @@ function applyStyles3() {
   
   const styleEl = document.createElement('style');
   
+  document.head.appendChild(styleEl);
+}
+
+function applyInvert() {
+  const styleEl = document.createElement('style');
+
   styleEl.textContent = `
   /* Additional styles can be added here if needed */
+  html{
+  filter: invert(1);
+  }
   `;
-  
   document.head.appendChild(styleEl);
 }
 

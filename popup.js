@@ -9,6 +9,7 @@ const speechBubblesCheckbox = document.getElementById('enableSpeechBubbles');
 const turtleCheckbox = document.getElementById('enableTurtle');
 const pongCheckbox = document.getElementById('enablePong');
 const presetColors = document.getElementById('presetColors');
+const invertCheckbox = document.getElementById('enableinvert')
 var i = 0;
 
 
@@ -27,7 +28,7 @@ chrome.storage.sync.get(['cartoonifyPrefs'], function (result) {
         speechBubblesCheckbox.checked = prefs.enableSpeechBubbles !== false;
         turtleCheckbox.checked = prefs.enableTurtle !== false;
         pongCheckbox.checked = prefs.enablePong !== false;
-        
+        invertCheckbox.checked = prefs.enableinvert !==false;
         
         updateColorPreview(mainColorInput.value);
     }
@@ -47,7 +48,8 @@ function savePreferences() {
         enableSoundEffects: soundEffectsCheckbox.checked,
         enableSpeechBubbles: speechBubblesCheckbox.checked,
         enableTurtle: turtleCheckbox.checked,
-        enablePong: pongCheckbox.checked
+        enablePong: pongCheckbox.checked,
+        enableinvert: invertCheckbox.checked,
     };
     
     chrome.storage.sync.set({ cartoonifyPrefs: prefs });
@@ -74,7 +76,7 @@ soundEffectsCheckbox.addEventListener('change', savePreferences);
 speechBubblesCheckbox.addEventListener('change', savePreferences);
 turtleCheckbox.addEventListener('change', savePreferences);
 pongCheckbox.addEventListener('change', savePreferences);
-
+invertCheckbox.addEventListener('change', savePreferences);
 
 updateColorPreview(mainColorInput.value);
 
@@ -92,7 +94,8 @@ applyStylesButton.addEventListener('click', () => {
         enableSoundEffects: soundEffectsCheckbox.checked,
         enableSpeechBubbles: speechBubblesCheckbox.checked,
         enableTurtle: turtleCheckbox.checked,
-        enablePong: pongCheckbox.checked
+        enablePong: pongCheckbox.checked,
+        enableinvert: invertCheckbox.checked,
     };
     
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
